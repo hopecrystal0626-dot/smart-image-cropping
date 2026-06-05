@@ -33,7 +33,7 @@ def compute_balance_score(image: np.ndarray, bbox: Tuple[int, int, int, int]) ->
     grad_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
     grad_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
     weight_map = np.sqrt(grad_x ** 2 + grad_y ** 2)
-    weight_map = weight_map / (np.mean(weight_map) + 1e-6)
+    weight_map = weight_map / (weight_map.max() + 1e-6)
     
     # 计算视觉重心
     total_weight = weight_map.sum()
