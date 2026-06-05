@@ -5,7 +5,7 @@ from crop.candidate_generator import generate_candidates
 # ======================
 # 1. 读取图片
 # ======================
-img_path = r"data/testA/A07.jpg"
+img_path = r"data/testA/A08.jpg"
 img = cv2.imread(img_path)
 
 if img is None:

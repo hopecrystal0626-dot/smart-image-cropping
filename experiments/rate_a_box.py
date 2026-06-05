@@ -46,7 +46,7 @@ def rate_single_box(img, bbox, name=""):
 
 def main():
     # ========== 配置 ==========
-    image_path = r"D:\VSCODE project\jiqishijue\smart-image-cropping\data\testA\A03.jpg"
+    image_path = r"D:\VSCODE project\jiqishijue\smart-image-cropping\data\testA\A08.jpg"
     
     # ========== 1. 读取图片 ==========
     img = cv2.imread(image_path)
