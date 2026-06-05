@@ -5,7 +5,7 @@ from crop.candidate_generator import generate_candidates
 # ======================
 # 1. 读取图片
 # ======================
-img_path = r"data/testA/A02.jpg"
+img_path = r"data/testA/A07.jpg"
 img = cv2.imread(img_path)
 
 if img is None:
@@ -23,7 +23,7 @@ print("总候选框数量:", len(boxes))
 # ======================
 # 3. 只筛选 scale = 0.3
 # ======================
-target_scale = 0.25
+target_scale = 0.4
 
 filtered_boxes = [
     box for box in boxes
