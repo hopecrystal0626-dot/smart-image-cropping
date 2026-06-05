@@ -5,7 +5,7 @@ from crop.candidate_generator import generate_candidates
 
 
 # 读取图片
-img = cv2.imread(r"data/testA/A07.jpg")
+img = cv2.imread(r"data/testA/A06.jpg")
 
 if img is None:
     raise ValueError("图片读取失败")
@@ -23,7 +23,7 @@ print("总候选框数量:", len(boxes))
 # 随机抽取20个
 sample_boxes = random.sample(
     boxes,
-    min(40, len(boxes))
+    min(5, len(boxes))
 )
 
 # 复制图片
