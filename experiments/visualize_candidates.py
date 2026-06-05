@@ -5,7 +5,7 @@ from crop.candidate_generator import generate_candidates
 
 
 # 读取图片
-img = cv2.imread(r"data/testA/A15.jpg")
+img = cv2.imread(r"data/testA/A05.jpg")
 
 if img is None:
     raise ValueError("图片读取失败")

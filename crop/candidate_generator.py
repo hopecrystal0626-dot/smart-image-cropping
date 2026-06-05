@@ -1,4 +1,4 @@
-from crop.bbox_utils import BBox
+'''from crop.bbox_utils import BBox
 
 
 def generate_candidates(img_w, img_h):
@@ -60,5 +60,49 @@ def generate_candidates(img_w, img_h):
                     candidates.append(
                         BBox(x, y, x + crop_w, y + crop_h, scale)
                     )
+
+    return candidates
+'''
+
+from __future__ import annotations
+from typing import List
+from crop.bbox_utils import BBox
+
+
+_SCALE_GRID: dict[float, int] = {
+    0.20: 8,
+    0.25: 9,
+    0.30: 10,
+    0.35: 11,
+    0.40: 11,
+    0.50: 12,
+}
+
+
+def generate_candidates(img_w: int, img_h: int) -> List[BBox]:
+    seen: set[tuple] = set()
+    candidates: List[BBox] = []
+
+    for scale, grid_n in _SCALE_GRID.items():
+        crop_w = int(img_w * scale)
+        crop_h = int(img_h * scale)
+
+        if crop_w >= img_w or crop_h >= img_h:
+            continue
+
+        for i in range(grid_n):
+            for j in range(grid_n):
+                x = int(i * (img_w - crop_w) / (grid_n - 1)) if grid_n > 1 else 0
+                y = int(j * (img_h - crop_h) / (grid_n - 1)) if grid_n > 1 else 0
+
+                x = max(0, min(x, img_w - crop_w))
+                y = max(0, min(y, img_h - crop_h))
+
+                key = (x, y, x + crop_w, y + crop_h)
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                candidates.append(BBox(x, y, x + crop_w, y + crop_h, scale))
 
     return candidates
