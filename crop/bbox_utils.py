@@ -78,7 +78,8 @@ def clip_bbox(bbox, img_w, img_h):
         max(0, bbox.x1),
         max(0, bbox.y1),
         min(img_w, bbox.x2),
-        min(img_h, bbox.y2)
+        min(img_h, bbox.y2),
+        bbox.scale
     )
     
     
@@ -106,6 +107,8 @@ def compute_iou(box1, box2):
 
     if union_area == 0:
         return 0.0
+    
+    return inter_area / union_area
 
 
 def distance_between_centers(box1, box2):
