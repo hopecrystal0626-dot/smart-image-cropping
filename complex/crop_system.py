@@ -1,6 +1,6 @@
 """
-智能取景系统 - 统一接口
-提供：给定一张图片，返回前10个最优候选框的坐标
+智能取景系统 - 统一接口（加权融合版）
+融合：你的手工评分 + 同学B的NIMA评分
 """
 
 import cv2
@@ -9,6 +9,7 @@ from pathlib import Path
 from ultralytics import YOLO
 
 from composition.composition_score import compute_composition_score_single
+from composition.aesthetic_scorer import AestheticScorer  # 同学B的NIMA模块
 from crop.candidate_generator import generate_candidates
 from crop.bbox_utils import BBox
 from experiments.test_saliency import (
@@ -18,22 +19,37 @@ from experiments.test_saliency import (
 
 
 class SmartCropping:
-    """智能取景系统主类"""
+    """智能取景系统主类（加权融合版）"""
     
-    def __init__(self, yolo_model_path="yolov8n.pt"):
+    def __init__(self, yolo_model_path="yolov8n.pt", 
+                 alpha=0.4, beta=0.6):
+        """
+        初始化
+        
+        Args:
+            yolo_model_path: YOLO模型路径
+            alpha: 手工评分权重（你的规则）
+            beta: NIMA评分权重（同学B）
+        """
         self.yolo = YOLO(yolo_model_path)
-        print("✅ 智能取景系统初始化完成")
+        self.alpha = alpha  # 手工评分权重
+        self.beta = beta    # NIMA评分权重
+        # 初始化同学B的NIMA评分器
+        self.nima_scorer = AestheticScorer()
+        print(f"✅ 智能取景系统初始化完成")
+        print(f"   融合权重: 手工评分={alpha}, NIMA评分={beta}")
     
     def get_top10_crops(self, image_path, top_k=10):
         """
         输入图片路径，返回前K个最优候选框
         
-        Args:
-            image_path: 图片路径
-            top_k: 返回前K个候选框（默认10）
-        
         Returns:
-            list: 每个元素包含 {'bbox': BBox对象, 'score': 美学得分, 'area_ratio': 面积占比}
+            list: 每个元素包含 
+                - 'bbox': BBox对象
+                - 'handcraft_score': 手工评分
+                - 'nima_score': NIMA评分
+                - 'fusion_score': 融合得分
+                - 'area_ratio': 面积占比
         """
         img = cv2.imread(image_path)
         if img is None:
@@ -71,25 +87,41 @@ class SmartCropping:
         if len(complete_boxes) == 0:
             complete_boxes = top_bboxes
         
-        # 6. 美学评分
+        # 6. 融合评分（手工 + NIMA）
         scored_boxes = []
         for bbox in complete_boxes:
             cropped = img[bbox.y1:bbox.y2, bbox.x1:bbox.x2]
             if cropped.size == 0:
                 continue
             
+            # 你的手工评分
             score_detail = compute_composition_score_single(
                 cropped, 
                 bbox=(bbox.x1, bbox.y1, bbox.width, bbox.height)
             )
+            handcraft_score = score_detail['total_score']
+            
+            # 同学B的NIMA评分
+            try:
+                nima_score = self.nima_scorer.get_score_for_bbox(img, bbox)
+                # NIMA返回的是0-10分，归一化到0-1
+                nima_score = nima_score / 10.0
+            except Exception as e:
+                print(f"   ⚠️ NIMA评分失败: {e}")
+                nima_score = 0.5
+            
+            # 加权融合
+            fusion_score = self.alpha * handcraft_score + self.beta * nima_score
             
             scored_boxes.append({
                 'bbox': bbox,
-                'score': score_detail['total_score'],
+                'handcraft_score': handcraft_score,
+                'nima_score': nima_score,
+                'fusion_score': fusion_score,
                 'area_ratio': (bbox.width * bbox.height) / (w * h)
             })
         
-        scored_boxes.sort(key=lambda x: x['score'], reverse=True)
+        scored_boxes.sort(key=lambda x: x['fusion_score'], reverse=True)
         
         return scored_boxes[:top_k]
     
@@ -140,13 +172,14 @@ class SmartCropping:
 
 # 使用示例
 if __name__ == "__main__":
-    # 初始化系统
-    cropper = SmartCropping()
+    # 初始化系统（可调整融合权重）
+    cropper = SmartCropping(alpha=0.3, beta=0.7)  # 手工30%，NIMA70%
     
     # 获取前10个候选框
     results = cropper.get_top10_crops("data/testA/A15.jpg", top_k=10)
     
-    print("前10名候选框:")
+    print("\n前10名候选框（融合评分）:")
+    print(f"{'排名':<4} {'手工分':<8} {'NIMA分':<8} {'融合分':<8} {'面积':<6}")
+    print("-" * 45)
     for i, r in enumerate(results):
-        bbox = r['bbox']
-        print(f"  #{i+1}: 位置=({bbox.x1},{bbox.y1},{bbox.x2},{bbox.y2}), 得分={r['score']:.4f}, 面积={r['area_ratio']:.0%}")
+        print(f"#{i+1:<3} {r['handcraft_score']:<8.4f} {r['nima_score']:<8.4f} {r['fusion_score']:<8.4f} {r['area_ratio']:<6.0%}")
