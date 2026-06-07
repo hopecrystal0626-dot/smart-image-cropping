@@ -1,12 +1,12 @@
 """
-显著性工具函数：提供显著图获取、候选框评分、后处理、取景框提取、IoU计算、候选框筛选等
+显著性工具函数：提供显著图获取、候选框评分、后处理、取景框提取、IoU计算、候选框筛选以及主体中心/边界框提取等
 """
 
 import cv2
 import numpy as np
 from typing import Tuple, Optional, List
 from saliency.detector import get_default_detector
-from crop.bbox_utils import BBox   # 依赖队友的 BBox 定义
+from crop.bbox_utils import BBox
 
 _detector = None
 
@@ -61,9 +61,8 @@ def extract_bbox_from_framing(original_img_path: str, framing_img_path: str) -> 
         return (x, y, x + w, y + h)
     return None
 
-# ========== 新增：IoU 计算（健壮版本）==========
 def compute_iou(box1: BBox, box2: BBox) -> float:
-    """计算两个 BBox 的 IoU（使用队友的 BBox 类）"""
+    """计算两个 BBox 的 IoU"""
     inter_x1 = max(box1.x1, box2.x1)
     inter_y1 = max(box1.y1, box2.y1)
     inter_x2 = min(box1.x2, box2.x2)
@@ -76,12 +75,7 @@ def compute_iou(box1: BBox, box2: BBox) -> float:
     union = area1 + area2 - inter_area
     return inter_area / union if union > 0 else 0.0
 
-# ========== 新增：基于中心偏好的评分函数 ==========
 def score_by_center_bias(sal_map: np.ndarray, bbox: BBox, center_bias: float = 0.3) -> float:
-    """
-    结合显著图均值和显著图质心与框中心的距离进行评分
-    center_bias 越大，越强调质心距离
-    """
     roi = sal_map[bbox.y1:bbox.y2, bbox.x1:bbox.x2]
     if roi.size == 0:
         return 0.0
@@ -100,16 +94,10 @@ def score_by_center_bias(sal_map: np.ndarray, bbox: BBox, center_bias: float = 0
     center_score = 1.0 - dist
     return mean_score * (1 - center_bias) + center_score * center_bias
 
-# ========== 新增：根据得分筛选前百分比候选框并分段 ==========
 def filter_top_bboxes_by_percentile(sal_map: np.ndarray,
                                     candidates: List[BBox],
                                     top_percent: float = 0.3,
                                     num_segments: int = 3):
-    """
-    筛选出得分前 top_percent 的候选框，并返回分段索引。
-    返回: (top_bboxes, top_scores, segment_indices)
-    segment_indices: 列表，每个框对应的分段号（0,1,2...）
-    """
     scored = [(bbox, score_by_center_bias(sal_map, bbox)) for bbox in candidates]
     scored.sort(key=lambda x: x[1], reverse=True)
     k = max(1, int(len(scored) * top_percent))
@@ -126,3 +114,40 @@ def filter_top_bboxes_by_percentile(sal_map: np.ndarray,
             seg = 2
         segment_indices.append(seg)
     return top_bboxes, top_scores, segment_indices
+
+def get_subject_center(sal_map: np.ndarray):
+    """从显著图中提取最大连通域的中心"""
+    h, w = sal_map.shape
+    thresh = np.percentile(sal_map, 70)
+    binary = (sal_map > thresh).astype(np.uint8)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+    closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return w / 2, h / 2
+    largest = max(contours, key=cv2.contourArea)
+    M = cv2.moments(largest)
+    if M["m00"] != 0:
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+    else:
+        cx, cy = w // 2, h // 2
+    return cx, cy
+
+# ========== 新增：提取最大连通域边界框 ==========
+def get_subject_bbox(sal_map: np.ndarray, img_shape: Tuple[int, int]) -> Optional[Tuple[int, int, int, int]]:
+    """
+    从显著图中提取最大连通域的外接矩形
+    返回 (x1, y1, x2, y2) 或 None
+    """
+    h, w = img_shape[:2]
+    thresh = np.percentile(sal_map, 70)
+    binary = (sal_map > thresh).astype(np.uint8)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+    closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+    largest = max(contours, key=cv2.contourArea)
+    x, y, w2, h2 = cv2.boundingRect(largest)
+    return (x, y, x + w2, y + h2)
