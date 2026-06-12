@@ -1,0 +1,4 @@
+river                    : 0.4933
+tree-merged              : 0.2760
+sky-other-merged         : 0.1237
+mountain-merged          : 0.0357

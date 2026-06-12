@@ -1,0 +1,3 @@
+floor-other-merged       : 0.8025
+person                   : 0.1322
+sports ball              : 0.0003

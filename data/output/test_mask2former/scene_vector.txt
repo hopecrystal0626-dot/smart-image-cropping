@@ -1,0 +1,2 @@
+sky-other-merged         : 0.5068
+building-other-merged    : 0.2268

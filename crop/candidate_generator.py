@@ -66,11 +66,11 @@ def generate_candidates(img_w, img_h):
 
 from __future__ import annotations
 import random
-from typing import List
+from typing import Dict, List, Optional
 from crop.bbox_utils import BBox
 
 
-_SCALE_GRID: dict[float, int] = {
+_DEFAULT_SCALE_GRID: dict[float, int] = {
     0.20: 12,
     0.25: 12,
     0.30: 12,
@@ -80,12 +80,19 @@ _SCALE_GRID: dict[float, int] = {
 }
 
 
-def generate_candidates(img_w: int, img_h: int, jitter_ratio: float = 0.05, seed: int = 42) -> List[BBox]:
+def generate_candidates(
+    img_w: int,
+    img_h: int,
+    jitter_ratio: float = 0.05,
+    seed: int = 42,
+    scale_grid: Optional[Dict[float, int]] = None,
+) -> List[BBox]:
     rng = random.Random(seed)
     seen: set[tuple] = set()
     candidates: List[BBox] = []
+    active_scale_grid = scale_grid or _DEFAULT_SCALE_GRID
 
-    for scale, grid_n in _SCALE_GRID.items():
+    for scale, grid_n in active_scale_grid.items():
         crop_w = int(img_w * scale)
         crop_h = int(img_h * scale)
 

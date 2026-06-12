@@ -1,0 +1,6 @@
+tree-merged              : 0.4205
+sky-other-merged         : 0.3078
+road                     : 0.1971
+grass-merged             : 0.0378
+dirt-merged              : 0.0251
+boat                     : 0.0107

@@ -1,0 +1,6 @@
+sea                      : 0.4091
+sky-other-merged         : 0.2996
+net                      : 0.1306
+rock-merged              : 0.0948
+tree-merged              : 0.0514
+boat                     : 0.0145

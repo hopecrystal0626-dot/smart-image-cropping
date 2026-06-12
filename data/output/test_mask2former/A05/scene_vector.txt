@@ -1,0 +1,6 @@
+grass-merged             : 0.7715
+tree-merged              : 0.1154
+person                   : 0.0497
+dirt-merged              : 0.0230
+sky-other-merged         : 0.0115
+handbag                  : 0.0050

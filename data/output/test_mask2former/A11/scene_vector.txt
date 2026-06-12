@@ -1,0 +1,4 @@
+sky-other-merged         : 0.6172
+sea                      : 0.3186
+boat                     : 0.0597
+sports ball              : 0.0045

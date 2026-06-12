@@ -1,0 +1,4 @@
+road                     : 0.4862
+sky-other-merged         : 0.3340
+building-other-merged    : 0.1063
+airplane                 : 0.0735
