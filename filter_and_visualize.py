@@ -133,17 +133,22 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
                          depth_near_ratio=0.35,
                          min_instance_area_ratio=0.005):
     """
-    无损修复版：
-    1. 扩充植物/花卉相关的语义标签，确保 A14 中的大片花卉不丢失，完美归类。
+    返回:
+        instance_masks  : List[np.ndarray]  核心主体候选实例
+        landscape_masks : List[np.ndarray]  风景/环境元素 (含天空)
+        sky_masks       : List[np.ndarray]  纯天空 (用于空洞惩罚)
+        person_masks    : List[np.ndarray]  人物/动物等"不可截断"主体,
+                                             用于独立的截断惩罚检测
     """
     h, w = img_rgb.shape[:2]
     img_area = h * w
-    
-    instance_masks = []   
-    landscape_masks = []  
-    sky_masks = []        
-    person_masks = []     
 
+    instance_masks = []   # 核心主体（如小车、小船、垃圾桶、显著性物体）
+    landscape_masks = []  # 风景元素（如树木、草地、河流、湖面、道路、天空等）
+    sky_masks = []        # 专门存放天空掩码，用于空洞检测
+    person_masks = []     # 人物/动物, 用于独立截断惩罚
+
+    # 严格的虚无背景黑名单：只过滤掉绝对没有构图美感贡献的纯色块
     BACKGROUND_LABELS = {
         "wall", "ceiling", "ceiling-merged", "wall-other-merged",
         "floor", "floor-wood"
@@ -158,6 +163,7 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
         m[y1:y2, x1:x2] = 1
         return m
 
+    # 解析 mask2former
     for seg in segments:
         label_lower = seg["label"].lower()
         if label_lower in BACKGROUND_LABELS:
@@ -167,32 +173,29 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
 
         mask = get_inst_mask(seg)
 
+        # 0. 人物/动物: 独立收集, 同时也作为核心主体参与 subject_coverage
         if label_lower in PERSON_LIKE_LABELS:
             person_masks.append(mask)
             instance_masks.append(mask)
             continue
 
+        # 1. 精准识别天空
         is_sky = "sky" in label_lower
-        
-        # 【重点扩充】：加入 flower, bush, brush, vegetation, flora, field 等标签
-        # 确保类似于 A14 这种全景大面积自然花卉、灌木景观能被完美识别
+        # 2. 识别其他具有美学构图贡献的自然/结构风景（采用模糊匹配，适配各类衍生标签）
         is_landscape = any(kw in label_lower for kw in [
             "tree", "grass", "river", "water", "mountain", "road",
-            "pavement", "plant", "sea", "lake", "wood", "building", "hill",
-            "flower", "bush", "vegetation", "flora", "field", "rock"
+            "pavement", "plant", "sea", "lake", "wood", "building", "hill"
         ])
 
         if is_sky:
             sky_masks.append(mask)
-            landscape_masks.append(mask) 
+            landscape_masks.append(mask)  # 天空也属于广义风景
         elif is_landscape:
             landscape_masks.append(mask)
-            # 同时塞一份进核心主体，让大主体面积补偿机制也能对花卉/建筑生效
-            instance_masks.append(mask) 
         else:
-            instance_masks.append(mask)
+            instance_masks.append(mask)  # 剩下的归为普通核心主体
 
-    # ---------- u2net 显著性与深度图补丁保持不变 ----------
+    # ---------- u2net: 显著性连通区域（坚决划归为核心主体） ----------
     sal_binary = (saliency_mask > saliency_thresh).astype(np.uint8)
     if sal_binary.sum() >= img_area * min_instance_area_ratio:
         num_labels, labels_im = cv2.connectedComponents(sal_binary)
@@ -201,6 +204,7 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
             if comp_mask.sum() >= img_area * min_instance_area_ratio:
                 instance_masks.append(comp_mask)
 
+    # ---------- depth: 最近的连通区域（坚决划归为核心主体） ----------
     if depth_map is not None:
         depth_near = (depth_map > (1 - depth_near_ratio)).astype(np.uint8)
         if depth_near.sum() >= img_area * min_instance_area_ratio:
@@ -214,6 +218,7 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
         instance_masks.append(np.ones((h, w), dtype=np.uint8))
 
     return instance_masks, landscape_masks, sky_masks, person_masks
+
 
 # ============================================================
 # 去重 + 初筛
@@ -251,7 +256,14 @@ def subject_coverage(box: BBox, instance_masks):
             best_idx = idx
 
     if best_idx == -1:
-        return 1.0, -1  # 没有任何有效实例, 不惩罚
+        # 没有命中任何实例(框内不包含 instance_masks 里任何一个实例的像素)。
+        # 之前返回 1.0(视为"不惩罚"/满分), 会导致这类框的 composition_score
+        # 系统性虚高(因为 cov=1.0 封顶), 即使它什么"主体"都没框住也排到最前面。
+        # 改为 0.0: 这类框默认 cov=0, 后续 is_landscape_intent 判断里
+        # land_cov > cov*0.8 = 0 几乎总能成立, 只要 land_cov>=0.25 就会
+        # 被正确划入风景赛道(用风景维度评分), 而不是错误地停留在主体赛道
+        # 却拿着虚高的 cov=1.0。
+        return 0.0, -1
 
     return best_cov, best_idx
 
@@ -276,7 +288,7 @@ def nms_dedup(boxes, scores, iou_thresh=NMS_IOU_THRESH):
 
     return keep
 
-'''
+
 def initial_filter(boxes, instance_masks, landscape_masks, sky_masks, person_masks,
                    img_w, img_h,
                    coverage_thresh=SUBJECT_COVERAGE_THRESH,
@@ -448,6 +460,32 @@ def initial_filter(boxes, instance_masks, landscape_masks, sky_masks, person_mas
 
     print(f"[DEBUG] 过滤后 -> 纯主体赛道: {len(subject_channel)} 个框 | 风景环境赛道: {len(landscape_channel)} 个框")
 
+    # ---- 数量保底辅助函数 ----
+    # 不引入任何新的几何/语义判断条件, 单纯用 filtered 中按 score 排序的
+    # "次优框"补齐到 keep_top_n(用坐标判重, 避免重复)。
+    def fill_to_quota(records_in, pool):
+        if len(records_in) >= keep_top_n:
+            return records_in[:keep_top_n] if len(records_in) > keep_top_n else records_in
+
+        def box_key(r):
+            b = r["box"]
+            return (round(b.x1, 1), round(b.y1, 1), round(b.x2, 1), round(b.y2, 1))
+
+        existing_keys = {box_key(r) for r in records_in}
+        all_sorted = sorted(pool, key=lambda r: r["score"], reverse=True)
+
+        out = list(records_in)
+        for r in all_sorted:
+            if len(out) >= keep_top_n:
+                break
+            k = box_key(r)
+            if k not in existing_keys:
+                out.append(r)
+                existing_keys.add(k)
+
+        out.sort(key=lambda r: r["score"], reverse=True)
+        return out
+
     if len(landscape_channel) == 0 or len(subject_channel) == 0:
         print("[DEBUG] 警告：某一通道无合格候选框，触发老逻辑合并去重。")
         boxes_f = [r["box"] for r in filtered]
@@ -455,7 +493,10 @@ def initial_filter(boxes, instance_masks, landscape_masks, sky_masks, person_mas
         keep_idx = nms_dedup(boxes_f, scores_f, NMS_IOU_THRESH)
         kept = [filtered[i] for i in keep_idx]
         kept.sort(key=lambda r: r["score"], reverse=True)
-        return kept[:keep_top_n], records
+        kept = kept[:keep_top_n]
+        kept = fill_to_quota(kept, records)
+        print(f"[DEBUG] 最终输出框数量: {len(kept)} (目标 {keep_top_n})")
+        return kept, records
 
     # ---- 独立赛道 A：纯主体聚焦框 NMS ----
     sub_boxes = [r["box"] for r in subject_channel]
@@ -485,207 +526,12 @@ def initial_filter(boxes, instance_masks, landscape_masks, sky_masks, person_mas
     final_records = final_sub + final_land
     final_records.sort(key=lambda r: r["score"], reverse=True)
 
-    return final_records, records
-'''
-def initial_filter(boxes, instance_masks, landscape_masks, sky_masks, person_masks,
-                   img_w, img_h,
-                   coverage_thresh=SUBJECT_COVERAGE_THRESH,
-                   keep_top_n=KEEP_TOP_N):
-    """
-    无损修复版：
-    1. 修正触碰边界逻辑，采用安全缩进(Inset)，彻底解决建筑框被误杀、无缘无故截断的问题。
-    2. 软化截断惩罚，取消 filtered 阶段的一刀切硬过滤，改由分数阶梯控制，确保最优框不丢失。
-    """
-    img_area = img_w * img_h
-    img_cx, img_cy = img_w / 2, img_h / 2
+    final_records = fill_to_quota(final_records, records)
 
-    records = []
-
-    for box in boxes:
-        b = clip_bbox(box, img_w, img_h)
-        if b.width <= 5 or b.height <= 5: # 过滤极小无效框
-            continue
-
-        # 1. 计算核心主体覆盖率
-        cov, subj_idx = subject_coverage(b, instance_masks)
-
-        # 大主体面积补偿逻辑（保留并优化：防止大建筑/大花丛天然低分）
-        if subj_idx is not None and subj_idx >= 0 and subj_idx < len(instance_masks):
-            target_mask = instance_masks[subj_idx]
-            sub_img_ratio = target_mask.sum() / img_area
-            if sub_img_ratio > 0.12:  # 稍微调低阈值，让 A14 的大花丛也能享受到补偿
-                if cov >= 0.30:       # 只要框住了 30% 以上的大主体，就认为是非常优秀的局部构图
-                    cov = max(cov, 0.70 + 0.30 * cov)
-
-        # 2. 【严谨修正】安全缩进边界触碰检测 (Safe Inset Edge Touch)
-        edge_clip_penalty = 0.0
-        if subj_idx is not None and subj_idx >= 0 and subj_idx < len(instance_masks):
-            target_mask = instance_masks[subj_idx]
-            
-            # 向内缩进 3 个像素，避免取整误差和边缘毛刺引发误判
-            inset = 3
-            x1_i = int(np.clip(b.x1 + inset, 0, img_w - 1))
-            x2_i = int(np.clip(b.x2 - inset, 0, img_w - 1))
-            y1_i = int(np.clip(b.y1 + inset, 0, img_h - 1))
-            y2_i = int(np.clip(b.y2 - inset, 0, img_h - 1))
-            
-            if x2_i > x1_i and y2_i > y1_i:
-                # 只有当候选框的边没有贴到原图边界时，切断主体才算真正截断
-                touch_top = target_mask[y1_i, x1_i:x2_i].sum() > 0 if b.y1 > 2 else False
-                touch_bottom = target_mask[y2_i, x1_i:x2_i].sum() > 0 if b.y2 < img_h - 3 else False
-                touch_left = target_mask[y1_i:y2_i, x1_i].sum() > 0 if b.x1 > 2 else False
-                touch_right = target_mask[y1_i:y2_i, x2_i].sum() > 0 if b.x2 < img_w - 3 else False
-                
-                touch_count = sum([touch_top, touch_bottom, touch_left, touch_right])
-                
-                # 阶梯式惩罚：只有极其严重的死切（3面或4面撞墙）才重罚
-                if touch_count >= 3:
-                    edge_clip_penalty = 0.35
-                elif touch_count == 2:
-                    edge_clip_penalty = 0.15
-                elif touch_count == 1:
-                    edge_clip_penalty = 0.02 # 极轻微惩罚，给完美不沾边的框留出优势即可
-
-        # 2b. 人物/动物独立截断惩罚 (锁定不动)
-        person_clip_penalty = 0.0
-        for p_mask in person_masks:
-            total = p_mask.sum()
-            if total == 0:
-                continue
-            inter = p_mask[int(b.y1):int(b.y2), int(b.x1):int(b.x2)].sum()
-            if inter == 0:
-                continue
-            p_cov = inter / total
-            if p_cov < 0.98:
-                clipped = 1.0 - p_cov
-                this_penalty = 0.8 * min(1.0, clipped / 0.3)
-                person_clip_penalty = max(person_clip_penalty, this_penalty)
-
-        # 3. 计算风景环境总覆盖率
-        land_cov = 0.0
-        if len(landscape_masks) > 0:
-            land_cov, _ = subject_coverage(b, landscape_masks)
-
-        # 4. 计算纯天空占比
-        sky_ratio_in_box = 0.0
-        if len(sky_masks) > 0:
-            sky_inter_pixels = sum([mask[int(b.y1):int(b.y2), int(b.x1):int(b.x2)].sum() for mask in sky_masks])
-            sky_ratio_in_box = sky_inter_pixels / b.area if b.area > 0 else 0.0
-
-        area_ratio = b.area / img_area
-
-        # 维持完美的原始面积打分
-        if area_ratio < 0.12:
-            area_score = area_ratio / 0.12
-        elif area_ratio > 0.65:
-            area_score = max(0.4, 1.0 - 0.4 * ((area_ratio - 0.65) / 0.35))
-        else:
-            area_score = 1.0
-
-        # 中心偏移打分
-        dx = abs(b.center_x - img_cx) / (img_w / 2)
-        dy = abs(b.center_y - img_cy) / (img_h / 2)
-        center_score = max(0.0, 1.0 - 0.4 * (dx + dy))
-
-        # 区分赛道意图
-        is_landscape_intent = (land_cov >= 0.25) or (land_cov > cov * 0.5)
-
-        if is_landscape_intent:
-            composition_score = 0.4 * cov + 0.6 * land_cov
-        else:
-            composition_score = cov
-
-        # 综合初始分
-        score = 0.5 * composition_score + 0.3 * area_score + 0.2 * center_score
-
-        # 减去各项惩罚
-        if sky_ratio_in_box >= 0.70:
-            penalty = 0.5 * ((sky_ratio_in_box - 0.70) / 0.30)
-            score = max(0.0, score - penalty)
-
-        score = max(0.0, score - edge_clip_penalty)
-        score = max(0.0, score - person_clip_penalty)
-
-        records.append({
-            "box": b,
-            "coverage": cov,
-            "land_coverage": land_cov,
-            "subject_idx": subj_idx,
-            "area_ratio": area_ratio,
-            "is_landscape": is_landscape_intent,
-            "clip_penalty": edge_clip_penalty,
-            "person_clip_penalty": person_clip_penalty,
-            "score": score,
-        })
-
-    # 【重要改动】完全松绑硬过滤条件，只剔除严重的人物断肢框
-    # 至于建筑和风景，让它们在下游靠真实 Score 竞争，绝对不在这里搞一刀切
-    filtered = [
-        r for r in records
-        if r["person_clip_penalty"] < 0.2
-        and (r["coverage"] >= 0.25 or r["is_landscape"] or r["area_ratio"] >= 0.35)
-    ]
-    
-    if len(filtered) < keep_top_n:
-        filtered = sorted(records, key=lambda x: x["score"], reverse=True)[:keep_top_n]
-
-    # ---- 后续的动态配额与独立双通道 NMS 逻辑完全保持不变，确保稳定的基准表现 ----
-    if len(landscape_masks) > 0:
-        landscape_union = np.zeros_like(landscape_masks[0])
-        for m in landscape_masks:
-            landscape_union = np.logical_or(landscape_union, m)
-        total_landscape_ratio = landscape_union.sum() / img_area
-    else:
-        total_landscape_ratio = 0.0
-    total_landscape_ratio = min(1.0, total_landscape_ratio)
-
-    land_quota_ratio = 0.2 + 0.3 * total_landscape_ratio
-    land_quota = int(round(keep_top_n * land_quota_ratio))
-    sub_quota = keep_top_n - land_quota
-
-    subject_channel = []
-    landscape_channel = []
-
-    for r in filtered:
-        if r["is_landscape"]:
-            landscape_channel.append(r)
-        else:
-            subject_channel.append(r)
-
-    if len(landscape_channel) == 0 or len(subject_channel) == 0:
-        boxes_f = [r["box"] for r in filtered]
-        scores_f = [r["score"] for r in filtered]
-        keep_idx = nms_dedup(boxes_f, scores_f, NMS_IOU_THRESH)
-        kept = [filtered[i] for i in keep_idx]
-        kept.sort(key=lambda r: r["score"], reverse=True)
-        return kept[:keep_top_n], records
-
-    sub_boxes = [r["box"] for r in subject_channel]
-    sub_scores = [r["score"] for r in subject_channel]
-    sub_keep = nms_dedup(sub_boxes, sub_scores, NMS_IOU_THRESH)
-    sub_kept = [subject_channel[i] for i in sub_keep]
-    sub_kept.sort(key=lambda r: r["score"], reverse=True)
-
-    land_boxes = [r["box"] for r in landscape_channel]
-    land_scores = [r["score"] for r in landscape_channel]
-    land_keep = nms_dedup(land_boxes, land_scores, iou_thresh=0.88)
-    land_kept = [landscape_channel[i] for i in land_keep]
-    land_kept.sort(key=lambda r: r["score"], reverse=True)
-
-    final_land = land_kept[:land_quota]
-    final_sub = sub_kept[:sub_quota]
-
-    if len(final_land) < land_quota:
-        extra = land_quota - len(final_land)
-        final_sub = sub_kept[:sub_quota + extra]
-    elif len(final_sub) < sub_quota:
-        extra = sub_quota - len(final_sub)
-        final_land = land_kept[:land_quota + extra]
-
-    final_records = final_sub + final_land
-    final_records.sort(key=lambda r: r["score"], reverse=True)
+    print(f"[DEBUG] 最终输出框数量: {len(final_records)} (目标 {keep_top_n})")
 
     return final_records, records
+
 
 # ============================================================
 # 可视化
@@ -728,6 +574,13 @@ def draw_top_k(img_rgb, records, k=12, framing_img=None):
     """
     crops = []
     for r in records[:k]:
+        if r.get("__separator__"):
+            sep = np.full((180, 160, 3), (40, 80, 80), dtype=np.uint8)
+            cv2.putText(sep, "SUBJECT", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            cv2.putText(sep, "| LANDSCAPE", (5, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+            crops.append(sep)
+            continue
+
         b = r["box"]
         crop = img_rgb[int(b.y1):int(b.y2), int(b.x1):int(b.x2)]
         crop = cv2.resize(crop, (160, 160))
@@ -768,7 +621,7 @@ def main():
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    img_id = args.img
+def process_one(img_id, args):
     print(f"===== 处理 {img_id} =====")
 
     img_rgb = load_image(img_id)
@@ -835,7 +688,24 @@ def main():
         cv2.cvtColor(overlay_img, cv2.COLOR_RGB2BGR)
     )
 
-    grid_img = draw_top_k(img_rgb, final_records, k=20, framing_img=framing_img)
+    # 分别展示两个赛道各自的 Top10, 而不是合并排序后取 Top20。
+    # 之前合并排序会出现"两个赛道分数区间接近"时, 一个赛道的高分框
+    # 把另一个赛道的框全部挤出可视化范围的问题(即使配额机制本身生效,
+    # 视觉上也看不到风景赛道里"其实有好框")。
+    sub_records = [r for r in final_records if not r["is_landscape"]]
+    land_records = [r for r in final_records if r["is_landscape"]]
+
+    sub_records.sort(key=lambda r: r["score"], reverse=True)
+    land_records.sort(key=lambda r: r["score"], reverse=True)
+
+    print(f"[DEBUG] 最终100框中 -> 主体赛道: {len(sub_records)} | 风景赛道: {len(land_records)}")
+
+    # 用一个纯色占位 crop 标记两个赛道的分界, 便于在网格图里区分
+    separator = {"__separator__": True}
+
+    display_records = sub_records[:10] + [separator] + land_records[:10]
+
+    grid_img = draw_top_k(img_rgb, display_records, k=len(display_records), framing_img=framing_img)
     cv2.imwrite(
         os.path.join(OUTPUT_DIR, f"{img_id}_topk_grid.jpg"),
         cv2.cvtColor(grid_img, cv2.COLOR_RGB2BGR)
@@ -883,9 +753,59 @@ def main():
 
     print(f"\n完成! 输出目录: {OUTPUT_DIR}")
     print(f"  - {img_id}_overlay.jpg      所有保留框叠加图")
-    print(f"  - {img_id}_topk_grid.jpg    Top20框裁剪拼接(含GT framing对比)")
+    print(f"  - {img_id}_topk_grid.jpg    主体/风景两赛道Top10对比(含GT framing)")
     print(f"  - {img_id}_subject_mask.jpg 融合主体mask可视化")
     print(f"  - {img_id}_stats.txt        统计信息")
+
+
+def resolve_img_ids(img_arg):
+    """
+    解析 --img 参数:
+      - "A01"           -> ["A01"]
+      - "A01,A02,A03"   -> ["A01", "A02", "A03"]
+      - "all"           -> 扫描 DATA_DIR 下所有 A*.jpg (排除 *_framing.jpg)
+    """
+    if img_arg.lower() == "all":
+        ids = []
+        for fname in sorted(os.listdir(DATA_DIR)):
+            if not fname.lower().endswith(".jpg"):
+                continue
+            if "_framing" in fname:
+                continue
+            ids.append(os.path.splitext(fname)[0])
+        return ids
+
+    return [s.strip() for s in img_arg.split(",") if s.strip()]
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--img", type=str, default="A01",
+                         help="图片 ID, 支持单个(A01)、逗号分隔多个(A01,A02,A03)、"
+                              "或 'all'(处理 data/testA 下所有 A*.jpg)")
+    parser.add_argument("--no_depth", action="store_true", help="跳过depth模型(加速调试)")
+    args = parser.parse_args()
+
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    img_ids = resolve_img_ids(args.img)
+    print(f"共 {len(img_ids)} 张图片待处理: {img_ids}\n")
+
+    succeeded, failed = [], []
+
+    for img_id in img_ids:
+        try:
+            process_one(img_id, args)
+            succeeded.append(img_id)
+        except Exception as e:
+            print(f"[ERROR] 处理 {img_id} 失败: {e}")
+            failed.append(img_id)
+        print()  # 分隔每张图的日志
+
+    print("===== 批量处理完成 =====")
+    print(f"成功: {len(succeeded)} -> {succeeded}")
+    if failed:
+        print(f"失败: {len(failed)} -> {failed}")
 
 
 if __name__ == "__main__":
