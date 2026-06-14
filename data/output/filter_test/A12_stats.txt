@@ -1,0 +1,37 @@
+图片: A12  尺寸: 418x626
+候选框总数(去重前): 963
+初筛后保留: 100
+候选主体实例数: 10
+  实例0: 面积占比=0.0075
+  实例1: 面积占比=0.0352
+  实例2: 面积占比=0.1128
+  实例3: 面积占比=0.0298
+  实例4: 面积占比=0.6229
+  实例5: 面积占比=0.0129
+  实例6: 面积占比=0.0969
+  实例7: 面积占比=0.9004
+  实例8: 面积占比=0.0139
+  实例9: 面积占比=0.0530
+覆盖率分布: min=0.044 p25=0.228 median=0.566 p75=1.000 max=1.000
+
+Top 20 框详情:
+ 1. box=(104,157,313,470) scale=0.5 score=1.000 coverage=1.000 subject_idx=3 area_ratio=0.250
+ 2. box=(83,132,333,507) scale=0.6 score=0.998 coverage=1.000 subject_idx=0 area_ratio=0.358
+ 3. box=(83,95,333,470) scale=0.6 score=0.992 coverage=1.000 subject_idx=3 area_ratio=0.358
+ 4. box=(93,217,260,467) scale=0.4 score=0.981 coverage=1.000 subject_idx=3 area_ratio=0.160
+ 5. box=(129,261,296,511) scale=0.4 score=0.981 coverage=1.000 subject_idx=0 area_ratio=0.160
+ 6. box=(103,238,249,457) scale=0.35 score=0.980 coverage=1.000 subject_idx=3 area_ratio=0.122
+ 7. box=(69,189,278,502) scale=0.5 score=0.979 coverage=1.000 subject_idx=3 area_ratio=0.250
+ 8. box=(91,222,300,535) scale=0.5 score=0.979 coverage=1.000 subject_idx=0 area_ratio=0.250
+ 9. box=(121,95,371,470) scale=0.6 score=0.979 coverage=1.000 subject_idx=5 area_ratio=0.358
+10. box=(106,241,315,554) scale=0.5 score=0.979 coverage=1.000 subject_idx=0 area_ratio=0.250
+11. box=(46,95,296,470) scale=0.6 score=0.979 coverage=1.000 subject_idx=3 area_ratio=0.358
+12. box=(121,273,288,523) scale=0.4 score=0.978 coverage=1.000 subject_idx=0 area_ratio=0.160
+13. box=(54,173,304,548) scale=0.6 score=0.978 coverage=1.000 subject_idx=0 area_ratio=0.358
+14. box=(138,293,284,512) scale=0.35 score=0.978 coverage=1.000 subject_idx=0 area_ratio=0.122
+15. box=(92,210,342,585) scale=0.6 score=0.977 coverage=1.000 subject_idx=0 area_ratio=0.358
+16. box=(75,210,284,523) scale=0.5 score=0.977 coverage=1.000 subject_idx=0 area_ratio=0.250
+17. box=(143,260,310,510) scale=0.4 score=0.976 coverage=1.000 subject_idx=0 area_ratio=0.160
+18. box=(159,174,368,487) scale=0.5 score=0.976 coverage=1.000 subject_idx=5 area_ratio=0.250
+19. box=(82,224,249,474) scale=0.4 score=0.976 coverage=1.000 subject_idx=3 area_ratio=0.160
+20. box=(96,248,263,498) scale=0.4 score=0.975 coverage=1.000 subject_idx=3 area_ratio=0.160

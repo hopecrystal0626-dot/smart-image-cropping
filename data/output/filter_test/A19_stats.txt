@@ -1,0 +1,53 @@
+图片: A19  尺寸: 591x443
+候选框总数(去重前): 913
+初筛后保留: 100
+候选主体实例数: 8
+  实例0: 面积占比=0.2495
+  实例1: 面积占比=0.0062
+  实例2: 面积占比=0.1332
+  实例3: 面积占比=0.1009
+  实例4: 面积占比=0.0223
+  实例5: 面积占比=0.1565
+  实例6: 面积占比=0.0126
+  实例7: 面积占比=0.0868
+覆盖率分布: min=0.001 p25=0.350 median=0.770 p75=1.000 max=1.000
+
+最终100框按 scale 分布:
+  scale=0.2: 13
+  scale=0.25: 13
+  scale=0.3: 16
+  scale=0.35: 14
+  scale=0.4: 17
+  scale=0.5: 18
+  scale=0.6: 9
+最终100框按 subject_idx 分布 (-1=未匹配到任何实例):
+  subject_idx=-1: 18
+  subject_idx=0: 2
+  subject_idx=1: 19
+  subject_idx=2: 13
+  subject_idx=3: 16
+  subject_idx=4: 11
+  subject_idx=5: 1
+  subject_idx=6: 20
+
+等间距采样 20 框详情(对应 topk_grid.jpg):
+ 1. box=(76,178,430,443) scale=0.6 coverage=1.000 subject_idx=4 area_ratio=0.358
+ 2. box=(0,262,206,417) scale=0.35 coverage=1.000 subject_idx=1 area_ratio=0.122
+ 3. box=(7,306,154,416) scale=0.25 coverage=1.000 subject_idx=1 area_ratio=0.062
+ 4. box=(22,178,376,443) scale=0.6 coverage=1.000 subject_idx=1 area_ratio=0.358
+ 5. box=(440,61,587,171) scale=0.25 coverage=1.000 subject_idx=-1 area_ratio=0.062
+ 6. box=(169,128,287,216) scale=0.2 coverage=1.000 subject_idx=-1 area_ratio=0.040
+ 7. box=(243,260,479,437) scale=0.4 coverage=1.000 subject_idx=4 area_ratio=0.160
+ 8. box=(181,82,358,214) scale=0.3 coverage=1.000 subject_idx=-1 area_ratio=0.089
+ 9. box=(39,243,275,420) scale=0.4 coverage=1.000 subject_idx=1 area_ratio=0.160
+10. box=(204,222,499,443) scale=0.5 coverage=1.000 subject_idx=4 area_ratio=0.249
+11. box=(262,265,468,420) scale=0.35 coverage=0.995 subject_idx=6 area_ratio=0.122
+12. box=(335,285,512,417) scale=0.3 coverage=0.971 subject_idx=6 area_ratio=0.089
+13. box=(221,113,575,378) scale=0.6 coverage=0.924 subject_idx=3 area_ratio=0.358
+14. box=(66,256,302,433) scale=0.4 coverage=0.779 subject_idx=2 area_ratio=0.160
+15. box=(286,86,581,307) scale=0.5 coverage=0.770 subject_idx=3 area_ratio=0.249
+16. box=(62,219,298,396) scale=0.4 coverage=0.745 subject_idx=2 area_ratio=0.160
+17. box=(311,158,547,335) scale=0.4 coverage=0.616 subject_idx=3 area_ratio=0.160
+18. box=(308,166,514,321) scale=0.35 coverage=0.538 subject_idx=3 area_ratio=0.122
+19. box=(223,227,400,359) scale=0.3 coverage=0.462 subject_idx=3 area_ratio=0.089
+20. box=(414,280,591,412) scale=0.3 coverage=0.356 subject_idx=0 area_ratio=0.089

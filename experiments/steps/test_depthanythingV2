@@ -1,0 +1,116 @@
+
+
+from transformers import pipeline
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
+
+# ==========================
+# 1. 加载模型
+# ==========================
+print("加载模型...")
+
+pipe = pipeline(
+    task="depth-estimation",
+    model="depth-anything/Depth-Anything-V2-Small-hf"
+)
+
+print("模型加载完成")
+
+# ==========================
+# 2. 读取图片
+# ==========================
+img_path = r"data/testA/A06.jpg"
+
+image = Image.open(img_path).convert("RGB")
+
+print("图片尺寸:", image.size)
+
+# ==========================
+# 3. 深度预测
+# ==========================
+print("开始推理...")
+
+result = pipe(image)
+
+print("推理完成")
+
+# ==========================
+# 4. 获取深度图
+# ==========================
+depth_img = result["depth"]
+
+# 保存
+depth_img.save("depth_result.png")
+
+print("深度图已保存: depth_result.png")
+
+# ==========================
+# 5. 转numpy
+# ==========================
+depth_np = np.array(depth_img)
+
+print("\n========== 深度信息 ==========")
+print("shape =", depth_np.shape)
+print("min =", depth_np.min())
+print("max =", depth_np.max())
+print("mean =", depth_np.mean())
+print("=============================\n")
+
+# ==========================
+# 6. 可视化
+# ==========================
+fig, ax = plt.subplots(1, 2, figsize=(14, 7))
+
+ax[0].imshow(image)
+ax[0].set_title("Original Image")
+ax[0].axis("off")
+
+im = ax[1].imshow(depth_np, cmap="inferno")
+ax[1].set_title("Depth Map")
+ax[1].axis("off")
+
+plt.colorbar(im, ax=ax[1])
+
+# ==========================
+# 7. 点击查看深度值
+# ==========================
+def onclick(event):
+
+    if event.inaxes != ax[1]:
+        return
+
+    x = int(event.xdata)
+    y = int(event.ydata)
+
+    depth_value = depth_np[y, x]
+
+    print(
+        f"坐标 ({x},{y}) "
+        f"Depth = {depth_value}"
+    )
+
+    ax[1].scatter(
+        x,
+        y,
+        s=80,
+        c='cyan'
+    )
+
+    ax[1].text(
+        x,
+        y,
+        str(depth_value),
+        color='white',
+        fontsize=10
+    )
+
+    plt.draw()
+
+fig.canvas.mpl_connect(
+    'button_press_event',
+    onclick
+)
+
+plt.tight_layout()
+plt.show()

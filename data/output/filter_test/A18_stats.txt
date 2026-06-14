@@ -1,0 +1,33 @@
+图片: A18  尺寸: 418x626
+候选框总数(去重前): 863
+初筛后保留: 100
+候选主体实例数: 6
+  实例0: 面积占比=0.0816
+  实例1: 面积占比=0.9562
+  实例2: 面积占比=0.7841
+  实例3: 面积占比=0.1245
+  实例4: 面积占比=0.0284
+  实例5: 面积占比=0.1721
+覆盖率分布: min=0.041 p25=0.114 median=0.222 p75=0.457 max=1.000
+
+Top 20 框详情:
+ 1. box=(127,251,377,626) scale=0.6 score=0.967 coverage_score=0.996 raw_cov=1.000 fill_ratio=0.347 subject_idx=3 area_ratio=0.358
+ 2. box=(142,313,351,626) scale=0.5 score=0.966 coverage_score=1.000 raw_cov=1.000 fill_ratio=0.498 subject_idx=3 area_ratio=0.250
+ 3. box=(90,251,340,626) scale=0.6 score=0.951 coverage_score=0.964 raw_cov=0.978 fill_ratio=0.340 subject_idx=3 area_ratio=0.358
+ 4. box=(0,376,167,626) scale=0.4 score=0.940 coverage_score=1.000 raw_cov=1.000 fill_ratio=0.511 subject_idx=0 area_ratio=0.160
+ 5. box=(165,251,415,626) scale=0.6 score=0.934 coverage_score=0.964 raw_cov=0.978 fill_ratio=0.340 subject_idx=3 area_ratio=0.358
+ 6. box=(0,313,209,626) scale=0.5 score=0.925 coverage_score=0.966 raw_cov=1.000 fill_ratio=0.326 subject_idx=0 area_ratio=0.250
+ 7. box=(171,313,380,626) scale=0.5 score=0.918 coverage_score=0.945 raw_cov=0.945 fill_ratio=0.471 subject_idx=3 area_ratio=0.250
+ 8. box=(116,313,325,626) scale=0.5 score=0.894 coverage_score=0.896 raw_cov=0.896 fill_ratio=0.446 subject_idx=3 area_ratio=0.250
+ 9. box=(169,376,336,626) scale=0.4 score=0.894 coverage_score=0.913 raw_cov=0.913 fill_ratio=0.712 subject_idx=3 area_ratio=0.160
+10. box=(0,407,146,626) scale=0.35 score=0.882 coverage_score=0.930 raw_cov=0.930 fill_ratio=0.621 subject_idx=0 area_ratio=0.122
+11. box=(149,376,316,626) scale=0.4 score=0.850 coverage_score=0.847 raw_cov=0.847 fill_ratio=0.661 subject_idx=3 area_ratio=0.160
+12. box=(20,376,187,626) scale=0.4 score=0.849 coverage_score=0.873 raw_cov=0.873 fill_ratio=0.446 subject_idx=0 area_ratio=0.160
+13. box=(0,251,250,626) scale=0.6 score=0.829 coverage_score=0.825 raw_cov=1.000 fill_ratio=0.228 subject_idx=0 area_ratio=0.358
+14. box=(21,403,167,622) scale=0.35 score=0.826 coverage_score=0.847 raw_cov=0.847 fill_ratio=0.566 subject_idx=0 area_ratio=0.122
+15. box=(194,376,361,626) scale=0.4 score=0.818 coverage_score=0.820 raw_cov=0.820 fill_ratio=0.640 subject_idx=3 area_ratio=0.160
+16. box=(96,311,305,624) scale=0.5 score=0.810 coverage_score=0.782 raw_cov=0.782 fill_ratio=0.390 subject_idx=3 area_ratio=0.250
+17. box=(167,407,313,626) scale=0.35 score=0.808 coverage_score=0.798 raw_cov=0.798 fill_ratio=0.813 subject_idx=3 area_ratio=0.122
+18. box=(185,406,331,625) scale=0.35 score=0.804 coverage_score=0.798 raw_cov=0.798 fill_ratio=0.813 subject_idx=3 area_ratio=0.122
+19. box=(266,86,412,305) scale=0.35 score=0.801 coverage_score=0.801 raw_cov=0.973 fill_ratio=0.226 subject_idx=4 area_ratio=0.122
+20. box=(83,229,333,604) scale=0.6 score=0.800 coverage_score=0.756 raw_cov=0.829 fill_ratio=0.288 subject_idx=3 area_ratio=0.358

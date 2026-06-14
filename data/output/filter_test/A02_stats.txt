@@ -1,0 +1,54 @@
+图片: A02  尺寸: 591x443
+候选框总数(去重前): 863
+初筛后保留: 100
+候选主体实例数: 8
+  实例0: 面积占比=0.0212
+  实例1: 面积占比=0.4823
+  实例2: 面积占比=0.0703
+  实例3: 面积占比=0.1512
+  实例4: 面积占比=0.1939
+  实例5: 面积占比=0.1315
+  实例6: 面积占比=0.0120
+  实例7: 面积占比=0.0737
+覆盖率分布: min=0.003 p25=0.224 median=0.384 p75=0.703 max=1.000
+
+最终100框按 scale 分布:
+  scale=0.2: 13
+  scale=0.25: 16
+  scale=0.3: 13
+  scale=0.35: 12
+  scale=0.4: 16
+  scale=0.5: 17
+  scale=0.6: 13
+最终100框按 subject_idx 分布 (-1=未匹配到任何实例):
+  subject_idx=-1: 6
+  subject_idx=0: 21
+  subject_idx=1: 7
+  subject_idx=2: 13
+  subject_idx=3: 12
+  subject_idx=4: 1
+  subject_idx=5: 17
+  subject_idx=6: 20
+  subject_idx=7: 3
+
+等间距采样 20 框详情(对应 topk_grid.jpg):
+ 1. box=(85,40,439,305) scale=0.6 coverage=1.000 subject_idx=0 area_ratio=0.358
+ 2. box=(74,117,251,249) scale=0.3 coverage=1.000 subject_idx=0 area_ratio=0.089
+ 3. box=(237,104,591,369) scale=0.6 coverage=1.000 subject_idx=5 area_ratio=0.358
+ 4. box=(75,90,252,222) scale=0.3 coverage=1.000 subject_idx=0 area_ratio=0.089
+ 5. box=(0,35,354,300) scale=0.6 coverage=1.000 subject_idx=0 area_ratio=0.358
+ 6. box=(300,0,418,88) scale=0.2 coverage=1.000 subject_idx=-1 area_ratio=0.040
+ 7. box=(102,134,338,311) scale=0.4 coverage=0.999 subject_idx=6 area_ratio=0.160
+ 8. box=(105,30,341,207) scale=0.4 coverage=0.995 subject_idx=6 area_ratio=0.160
+ 9. box=(110,108,287,240) scale=0.3 coverage=0.978 subject_idx=6 area_ratio=0.089
+10. box=(115,36,410,257) scale=0.5 coverage=0.938 subject_idx=6 area_ratio=0.249
+11. box=(118,0,472,265) scale=0.6 coverage=0.900 subject_idx=6 area_ratio=0.358
+12. box=(355,262,591,439) scale=0.4 coverage=0.790 subject_idx=3 area_ratio=0.160
+13. box=(355,148,591,325) scale=0.4 coverage=0.769 subject_idx=5 area_ratio=0.160
+14. box=(275,266,511,443) scale=0.4 coverage=0.729 subject_idx=3 area_ratio=0.160
+15. box=(315,288,521,443) scale=0.35 coverage=0.708 subject_idx=3 area_ratio=0.122
+16. box=(379,311,556,443) scale=0.3 coverage=0.586 subject_idx=3 area_ratio=0.089
+17. box=(139,183,434,404) scale=0.5 coverage=0.516 subject_idx=1 area_ratio=0.249
+18. box=(444,209,591,319) scale=0.25 coverage=0.468 subject_idx=5 area_ratio=0.062
+19. box=(468,355,586,443) scale=0.2 coverage=0.414 subject_idx=7 area_ratio=0.040
+20. box=(107,213,343,390) scale=0.4 coverage=0.331 subject_idx=1 area_ratio=0.160

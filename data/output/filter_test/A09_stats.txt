@@ -1,0 +1,33 @@
+图片: A09  尺寸: 591x443
+候选框总数(去重前): 888
+初筛后保留: 100
+候选主体实例数: 6
+  实例0: 面积占比=0.0186
+  实例1: 面积占比=0.0654
+  实例2: 面积占比=0.8068
+  实例3: 面积占比=0.0482
+  实例4: 面积占比=0.0154
+  实例5: 面积占比=0.1128
+覆盖率分布: min=0.022 p25=0.077 median=0.151 p75=0.411 max=1.000
+
+Top 20 框详情:
+ 1. box=(139,183,434,404) scale=0.5 score=0.973 coverage=1.000 subject_idx=0 area_ratio=0.249
+ 2. box=(118,178,472,443) scale=0.6 score=0.970 coverage=1.000 subject_idx=0 area_ratio=0.358
+ 3. box=(133,216,369,393) scale=0.4 score=0.961 coverage=1.000 subject_idx=0 area_ratio=0.160
+ 4. box=(79,178,433,443) scale=0.6 score=0.960 coverage=1.000 subject_idx=0 area_ratio=0.358
+ 5. box=(115,207,351,384) scale=0.4 score=0.959 coverage=1.000 subject_idx=0 area_ratio=0.160
+ 6. box=(95,197,390,418) scale=0.5 score=0.957 coverage=1.000 subject_idx=0 area_ratio=0.249
+ 7. box=(116,222,411,443) scale=0.5 score=0.954 coverage=1.000 subject_idx=0 area_ratio=0.249
+ 8. box=(109,236,345,413) scale=0.4 score=0.948 coverage=1.000 subject_idx=0 area_ratio=0.160
+ 9. box=(76,213,371,434) scale=0.5 score=0.947 coverage=1.000 subject_idx=0 area_ratio=0.249
+10. box=(34,182,329,403) scale=0.5 score=0.947 coverage=1.000 subject_idx=0 area_ratio=0.249
+11. box=(147,222,442,443) scale=0.5 score=0.947 coverage=0.974 subject_idx=4 area_ratio=0.249
+12. box=(26,178,380,443) scale=0.6 score=0.946 coverage=1.000 subject_idx=0 area_ratio=0.358
+13. box=(141,266,377,443) scale=0.4 score=0.946 coverage=1.000 subject_idx=0 area_ratio=0.160
+14. box=(81,227,287,382) scale=0.35 score=0.944 coverage=1.000 subject_idx=0 area_ratio=0.122
+15. box=(118,259,324,414) scale=0.35 score=0.942 coverage=1.000 subject_idx=0 area_ratio=0.122
+16. box=(62,219,298,396) scale=0.4 score=0.942 coverage=1.000 subject_idx=0 area_ratio=0.160
+17. box=(120,266,356,443) scale=0.4 score=0.940 coverage=1.000 subject_idx=0 area_ratio=0.160
+18. box=(55,222,350,443) scale=0.5 score=0.939 coverage=1.000 subject_idx=0 area_ratio=0.249
+19. box=(150,238,386,415) scale=0.4 score=0.938 coverage=0.968 subject_idx=4 area_ratio=0.160
+20. box=(68,241,304,418) scale=0.4 score=0.936 coverage=1.000 subject_idx=0 area_ratio=0.160

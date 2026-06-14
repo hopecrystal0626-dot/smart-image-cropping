@@ -1,0 +1,30 @@
+图片: A14  尺寸: 627x417
+候选框总数(去重前): 813
+初筛后保留: 100
+候选主体实例数: 3
+  实例0: 面积占比=0.3424
+  实例1: 面积占比=0.0259
+  实例2: 面积占比=0.1516
+覆盖率分布: min=0.002 p25=0.238 median=1.000 p75=1.000 max=1.000
+
+Top 20 框详情:
+ 1. box=(195,104,445,270) scale=0.4 score=0.991 coverage=1.000 subject_idx=-1 area_ratio=0.159
+ 2. box=(208,105,427,250) scale=0.35 score=0.988 coverage=1.000 subject_idx=-1 area_ratio=0.121
+ 3. box=(188,83,438,249) scale=0.4 score=0.985 coverage=1.000 subject_idx=-1 area_ratio=0.159
+ 4. box=(156,62,469,270) scale=0.5 score=0.984 coverage=1.000 subject_idx=-1 area_ratio=0.249
+ 5. box=(171,111,390,256) scale=0.35 score=0.983 coverage=1.000 subject_idx=-1 area_ratio=0.121
+ 6. box=(208,88,427,233) scale=0.35 score=0.982 coverage=1.000 subject_idx=-1 area_ratio=0.121
+ 7. box=(150,96,400,262) scale=0.4 score=0.980 coverage=1.000 subject_idx=-1 area_ratio=0.159
+ 8. box=(236,101,486,267) scale=0.4 score=0.980 coverage=1.000 subject_idx=-1 area_ratio=0.159
+ 9. box=(239,101,458,246) scale=0.35 score=0.979 coverage=1.000 subject_idx=-1 area_ratio=0.121
+10. box=(188,66,438,232) scale=0.4 score=0.978 coverage=1.000 subject_idx=-1 area_ratio=0.159
+11. box=(156,41,469,249) scale=0.5 score=0.977 coverage=1.000 subject_idx=-1 area_ratio=0.249
+12. box=(160,79,410,245) scale=0.4 score=0.976 coverage=1.000 subject_idx=-1 area_ratio=0.159
+13. box=(225,83,475,249) scale=0.4 score=0.976 coverage=1.000 subject_idx=-1 area_ratio=0.159
+14. box=(125,16,501,266) scale=0.6 score=0.976 coverage=1.000 subject_idx=-1 area_ratio=0.360
+15. box=(184,52,497,260) scale=0.5 score=0.975 coverage=1.000 subject_idx=-1 area_ratio=0.249
+16. box=(203,62,516,270) scale=0.5 score=0.974 coverage=1.000 subject_idx=-1 area_ratio=0.249
+17. box=(109,62,422,270) scale=0.5 score=0.973 coverage=1.000 subject_idx=-1 area_ratio=0.249
+18. box=(105,106,355,272) scale=0.4 score=0.973 coverage=1.000 subject_idx=-1 area_ratio=0.159
+19. box=(178,57,428,223) scale=0.4 score=0.973 coverage=1.000 subject_idx=-1 area_ratio=0.159
+20. box=(122,52,435,260) scale=0.5 score=0.973 coverage=1.000 subject_idx=-1 area_ratio=0.249
