@@ -36,7 +36,7 @@ except ImportError:
 # 配置
 # ============================================================
 
-DATA_DIR = "data/testA"
+DATA_DIR = "data/testD"
 OUTPUT_DIR = "data/output/filter_test"
 
 NMS_IOU_THRESH = 0.85          # 粗去重阈值(先去掉几乎重复的框)
@@ -131,7 +131,7 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
                          depth_map=None,
                          saliency_thresh=0.5,
                          depth_near_ratio=0.35,
-                         min_instance_area_ratio=0.005):
+                         min_instance_area_ratio=0.002):
     """
     返回:
         instance_masks  : List[np.ndarray]  核心主体候选实例
@@ -153,23 +153,113 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
         "wall", "ceiling", "ceiling-merged", "wall-other-merged",
         "floor", "floor-wood"
     }
+    
+    sal_binary = (saliency_mask > saliency_thresh).astype(np.uint8)
+    num_sal_labels, sal_labels_im = cv2.connectedComponents(sal_binary)
+    
 
     def get_inst_mask(seg):
         seg_id = seg.get("id", None)
-        if seg_id is not None:
-            return (seg_map == seg_id).astype(np.uint8)
-        x1, y1, x2, y2 = seg["bbox"]
-        m = np.zeros((h, w), dtype=np.uint8)
-        m[y1:y2, x1:x2] = 1
-        return m
+        if seg_id is None:
+            # 兜底：没有 ID 就直接返回 BBox
+            x1, y1, x2, y2 = seg["bbox"]
+            m = np.zeros((h, w), dtype=np.uint8)
+            m[y1:y2, x1:x2] = 1
+            return m
+        
+        m_m2f = (seg_map == seg_id).astype(np.uint8)
+        if m_m2f.sum() == 0:
+            return m_m2f
+        
+        label_lower = seg["label"].lower()
+        IS_BACKGROUND = any(bg in label_lower for bg in ["wall", "sky", "floor", "ceiling"])
+        
+        # 如果是背景类，不需要进行任何强力肢体召回，直接返回原始 mask
+        if IS_BACKGROUND:
+            return m_m2f
+        
+        # ─── 轨道 A：尝试与 U2Net 强强联合 ───
+        matched_u2net = False
+        m_final = m_m2f.copy()
+
+        for label_id in range(1, num_sal_labels):
+            m_sal = (sal_labels_im == label_id).astype(np.uint8)
+            intersection = np.logical_and(m_m2f, m_sal).sum()
+            
+            # 如果和 U2Net 某个连通域交集超过当前物体面积的 30%，判定为同一核心主体
+            if intersection > 0.3 * m_m2f.sum():
+                m_final = np.logical_or(m_m2f, m_sal).astype(np.uint8)
+                matched_u2net = True
+                break
+            
+        # ─── 轨道 B + C：未撞上 U2Net 时，启动【局域安全区 + 深度连续性检测】 ───
+        if not matched_u2net:
+            # 找到当前残缺 Mask 的基本边界
+            ys, xs = np.where(m_m2f > 0)
+            if len(xs) > 0:
+                x1, y1, x2, y2 = xs.min(), ys.min(), xs.max(), ys.max()
+                
+                # 外扩 10 像素作为安全保护圈，防止把外面的大面积桌子融进来
+                pad = 15
+                bx1, by1 = max(0, x1 - pad), max(0, y1 - pad)
+                bx2, by2 = min(w, x2 + pad), min(h, y2 + pad)
+                
+                m_fixed = m_m2f.copy()
+                
+                # 🚨【核心创新：同深度像素召回】
+                if depth_map is not None:
+                    # 提取出当前物体在 Mask2Former 确定区域内的核心深度（用中位数免受极端噪点干扰）
+                    object_depths = depth_map[m_m2f > 0]
+                    core_depth = np.median(object_depths)
+                    
+                    # 定义深度的容差范围：由于深度图是 0~1 归一化的，$\pm 0.03$ 是非常合理的物体同级厚度
+                    depth_tolerance = 0.03 
+                    
+                    # 在安全的 ROI 局部圈子里，找出所有与当前主体“处于同一深度”的像素
+                    roi_depth = depth_map[by1:by2, bx1:bx2]
+                    # 深度吻合矩阵
+                    depth_match_roi = np.abs(roi_seed := roi_depth - core_depth) < depth_tolerance
+                    
+                    depth_match_mask = np.zeros((h, w), dtype=np.uint8)
+                    depth_match_mask[by1:by2, bx1:bx2] = depth_match_roi.astype(np.uint8)
+                    
+                    # 🛡️ 连通性条件：这些同深度的像素必须和我们原始的杯身“挨在一起”
+                    # 我们用 3x3 膨胀一下原始 mask 去触碰那些同深度的飞地
+                    dilated = cv2.dilate(m_fixed, np.ones((3, 3), np.uint8))
+                    valid_depth_extensions = depth_match_mask & dilated
+                    
+                    # 将这部分通过物理深度对齐、且接壤的断裂肢体（杯柄/柠檬片）强行并入！
+                    m_fixed = m_fixed | valid_depth_extensions
+                    
+              
+                # 搜寻此安全圈内的零碎小“孤岛” ID（全图面积小于 600 像素的边缘碎片）
+                roi_seg = seg_map[by1:by2, bx1:bx2]
+                local_ids = np.unique(roi_seg)
+                for loc_id in local_ids:
+                    if loc_id == 0 or loc_id == seg_id:
+                        continue
+                    if np.sum(seg_map == loc_id) < 500:
+                        m_fixed = m_fixed | (seg_map == loc_id).astype(np.uint8)
+                
+                # 严格限幅：用 restrict_mask 锁死边界，绝不污染安全圈外的世界
+                restrict_mask = np.zeros((h, w), dtype=np.uint8)
+                restrict_mask[by1:by2, bx1:bx2] = 1
+                m_final = m_fixed & restrict_mask
+
+        return m_final
+        
 
     # 解析 mask2former
     for seg in segments:
         label_lower = seg["label"].lower()
         if label_lower in BACKGROUND_LABELS:
             continue
-        if seg.get("area", 0) < img_area * min_instance_area_ratio:
-            continue
+        
+        is_person_like = label_lower in PERSON_LIKE_LABELS
+        
+        if not is_person_like:
+            if seg.get("area", 0) < img_area * min_instance_area_ratio:
+                continue
 
         mask = get_inst_mask(seg)
 
@@ -181,10 +271,14 @@ def build_instance_masks(img_rgb, saliency_mask, seg_map, segments,
 
         # 1. 精准识别天空
         is_sky = "sky" in label_lower
-        # 2. 识别其他具有美学构图贡献的自然/结构风景（采用模糊匹配，适配各类衍生标签）
+        # 2. 识别其他具有美学构图贡献的自然/结构风景
+        #    注意: fence/dirt/field/rock/sand/ground/playingfield 等也属于
+        #    "场景环境"类, 本身占比大、被框裁切是正常构图, 不应触发截断惩罚
         is_landscape = any(kw in label_lower for kw in [
             "tree", "grass", "river", "water", "mountain", "road",
-            "pavement", "plant", "sea", "lake", "wood", "building", "hill"
+            "pavement", "plant", "sea", "lake", "wood", "building", "hill",
+            "fence", "dirt", "field", "rock", "sand", "ground", "earth",
+            "gravel", "playingfield", "terrain", "land", "banner", "floor"
         ])
 
         if is_sky:
@@ -756,6 +850,8 @@ def process_one(img_id, args):
     print(f"  - {img_id}_topk_grid.jpg    主体/风景两赛道Top10对比(含GT framing)")
     print(f"  - {img_id}_subject_mask.jpg 融合主体mask可视化")
     print(f"  - {img_id}_stats.txt        统计信息")
+
+    return img_rgb, final_records, framing_img, instance_masks, landscape_masks, person_masks, depth_map
 
 
 def resolve_img_ids(img_arg):

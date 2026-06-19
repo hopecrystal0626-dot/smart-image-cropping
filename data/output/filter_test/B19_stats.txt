@@ -1,0 +1,31 @@
+图片: B19  尺寸: 443x591
+候选框总数(去重前): 838
+初筛后保留: 100
+候选主体实例数: 2
+  实例0: 面积占比=0.2694
+  实例1: 面积占比=0.3404
+风景元素数: 2 (天空: 1)
+人物/动物实例数: 0
+覆盖率分布: min=0.000 p25=0.111 median=0.193 p75=0.331 max=0.858
+
+Top 20 框详情:
+ 1. box=(130,107,395,461) scale=0.6 score=0.822 coverage=0.858 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.09 person_clip_pen=0.00 area_ratio=0.358
+ 2. box=(128,120,393,474) scale=0.6 score=0.821 coverage=0.855 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.09 person_clip_pen=0.00 area_ratio=0.358
+ 3. box=(130,71,395,425) scale=0.6 score=0.812 coverage=0.858 land_cov=0.477 subject_idx=0 is_landscape=False clip_pen=0.09 person_clip_pen=0.00 area_ratio=0.358
+ 4. box=(130,142,395,496) scale=0.6 score=0.783 coverage=0.827 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.11 person_clip_pen=0.00 area_ratio=0.358
+ 5. box=(91,107,356,461) scale=0.6 score=0.774 coverage=0.803 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.12 person_clip_pen=0.00 area_ratio=0.358
+ 6. box=(170,107,435,461) scale=0.6 score=0.772 coverage=0.827 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.11 person_clip_pen=0.00 area_ratio=0.358
+ 7. box=(88,120,353,474) scale=0.6 score=0.766 coverage=0.794 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.13 person_clip_pen=0.00 area_ratio=0.358
+ 8. box=(88,84,353,438) scale=0.6 score=0.761 coverage=0.797 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.13 person_clip_pen=0.00 area_ratio=0.358
+ 9. box=(152,107,373,402) scale=0.5 score=0.701 coverage=0.758 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.15 person_clip_pen=0.00 area_ratio=0.249
+10. box=(88,155,353,509) scale=0.6 score=0.700 coverage=0.744 land_cov=0.489 subject_idx=0 is_landscape=False clip_pen=0.16 person_clip_pen=0.00 area_ratio=0.358
+11. box=(149,127,370,422) scale=0.5 score=0.694 coverage=0.746 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.16 person_clip_pen=0.00 area_ratio=0.249
+12. box=(152,136,373,431) scale=0.5 score=0.683 coverage=0.736 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.17 person_clip_pen=0.00 area_ratio=0.249
+13. box=(136,97,357,392) scale=0.5 score=0.681 coverage=0.739 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.17 person_clip_pen=0.00 area_ratio=0.249
+14. box=(150,93,371,388) scale=0.5 score=0.672 coverage=0.736 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.17 person_clip_pen=0.00 area_ratio=0.249
+15. box=(115,116,336,411) scale=0.5 score=0.667 coverage=0.715 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.18 person_clip_pen=0.00 area_ratio=0.249
+16. box=(188,126,409,421) scale=0.5 score=0.664 coverage=0.733 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.17 person_clip_pen=0.00 area_ratio=0.249
+17. box=(143,149,364,444) scale=0.5 score=0.660 coverage=0.710 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.18 person_clip_pen=0.00 area_ratio=0.249
+18. box=(110,120,331,415) scale=0.5 score=0.656 coverage=0.703 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.19 person_clip_pen=0.00 area_ratio=0.249
+19. box=(119,136,340,431) scale=0.5 score=0.655 coverage=0.701 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.19 person_clip_pen=0.00 area_ratio=0.249
+20. box=(186,136,407,431) scale=0.5 score=0.654 coverage=0.721 land_cov=0.340 subject_idx=0 is_landscape=False clip_pen=0.18 person_clip_pen=0.00 area_ratio=0.249
