@@ -79,19 +79,24 @@ def process_image(img_path, use_depth=True, save_vis=True, output_dir=None):
         top10_crops.append(crop)  # 直接存 numpy 数组
 
     # 7. 可视化（可选）
-    grid_img = None
+    grid_img = draw_final_top_k(img_rgb, ranked, k=20, framing_img=framing_img)
     if save_vis:
         out_dir = output_dir or config.OUTPUT_DIR
         os.makedirs(out_dir, exist_ok=True)
-        grid_img = draw_final_top_k(img_rgb, ranked, k=20, framing_img=framing_img)
         cv2.imwrite(os.path.join(out_dir, f"{img_id}_final_grid.jpg"), cv2.cvtColor(grid_img, cv2.COLOR_RGB2BGR))
         cv2.imwrite(os.path.join(out_dir, f"{img_id}_best_crop.jpg"), cv2.cvtColor(best_crop, cv2.COLOR_RGB2BGR))
-
+        
     return {
         'best_box': best_box,
         'best_crop': best_crop,
         'top10': top10,
         'top10_crops': top10_crops,
         'grid_image': grid_img,
-        'all_records': ranked
+        'all_records': ranked,
+        # 新增：把中间结果也带出来
+        'depth_map': depth_map,          # float ndarray 或 None
+        'saliency_mask': saliency_mask,  # float 0~1
+        'seg_map': seg_map,              # panoptic 分割图
+
+
     }
