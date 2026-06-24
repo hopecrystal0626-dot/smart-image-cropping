@@ -26,15 +26,3 @@ python smart_framing/run.py
 > 注意：可执行文件已包含所有模型，无需安装 Python 或任何依赖，但**首次启动较慢**（约 30~60 秒），请耐心等待模型加载完成。
 
 ---
-
-## 本地权重文件说明
-
-| 文件                                           | 用途                                       |
-| ---------------------------------------------- | ------------------------------------------ |
-| `weights/u2net.pth`                            | 显著性检测（U2Net）                        |
-| `weights/ava+logos-l14-linearMSE.pth`          | 美学评分（CLIP）                           |
-| `weights/yolov8n-seg.pt`                       | 实例分割（可选）                           |
-| `weights/depth-anything-v2-small/`             | 深度估计（运行 download_models.py 后生成） |
-| `weights/mask2former-swin-base-coco-panoptic/` | 全景分割（运行 download_models.py 后生成） |
-
----
