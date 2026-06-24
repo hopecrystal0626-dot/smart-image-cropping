@@ -911,6 +911,21 @@ def process_one_final(img_id, args):
         f.write(f"权重: W_AES={W_AES} W_CONTENT={W_CONTENT} "
                 f"W_THIRDS={W_THIRDS} W_CENTER={W_CENTER} "
                 f"W_DEP=-{W_DEPTH_PENALTY} W_CLIP_PEN={W_CLIP_PENALTY} W_MISSING_PEN=-{W_MISSING_PENALTY}\n\n")
+        
+        if len(ranked) > 0:
+            best_box = ranked[0]["box"]
+            # 中心点坐标 (浮点数保留1位小数)
+            cx = (best_box.x1 + best_box.x2) / 2.0
+            cy = (best_box.y1 + best_box.y2) / 2.0
+            w = best_box.x2 - best_box.x1
+            h = best_box.y2 - best_box.y1
+            f.write(f"【最佳取景框】\n")
+            f.write(f"  中心表示: (center_x={cx:.1f}, center_y={cy:.1f}, width={w:.1f}, height={h:.1f})\n")
+            f.write(f"  角点表示: (x1={best_box.x1:.1f}, y1={best_box.y1:.1f}, x2={best_box.x2:.1f}, y2={best_box.y2:.1f})\n")
+            f.write("\n")  # 空行分隔
+        
+        
+        
         f.write("排名  final   aes    con    3rd    ctr    dep    pen    msg    "
                 "rule   L  i    area   box\n")
         for idx, r in enumerate(ranked):

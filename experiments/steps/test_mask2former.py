@@ -22,7 +22,7 @@ from composition.panoptic_detector import PanopticDetector
 # 配置
 # ==================================
 
-IMG_PATH = r"data/testD/B20.jpg"
+IMG_PATH = r"data/testA/A18.jpg"
 
 OUTPUT_DIR = r"data/output/test_mask2former"
 

@@ -20,7 +20,7 @@ print("模型加载完成")
 # ==========================
 # 2. 读取图片
 # ==========================
-img_path = r"data/testD/B20.jpg"
+img_path = r"data/testA/A18.jpg"
 
 image = Image.open(img_path).convert("RGB")
 

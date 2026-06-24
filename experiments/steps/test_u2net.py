@@ -16,7 +16,7 @@ import cv2
 from saliency.u2net_detector import U2NetDetector
 
 
-IMG_PATH = r"data/testD/B20.jpg"
+IMG_PATH = r"data/testA/A18.jpg"
 
 OUTPUT_DIR = r"data/output/test_u2net"
 
