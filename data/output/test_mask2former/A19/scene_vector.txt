@@ -1,7 +1,0 @@
-sky-other-merged         : 0.6123
-river                    : 0.1308
-dirt-merged              : 0.0926
-grass-merged             : 0.0838
-building-other-merged    : 0.0441
-person                   : 0.0149
-sports ball              : 0.0054

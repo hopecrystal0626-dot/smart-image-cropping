@@ -1,6 +1,0 @@
-dirt-merged              : 0.4067
-tree-merged              : 0.2619
-grass-merged             : 0.1412
-sky-other-merged         : 0.1356
-fence-merged             : 0.0448
-house                    : 0.0098

@@ -1,5 +1,0 @@
-playingfield             : 0.6502
-banner                   : 0.1149
-wall-other-merged        : 0.0931
-person                   : 0.0619
-baseball glove           : 0.0036

@@ -1,5 +1,0 @@
-tree-merged              : 0.5152
-rock-merged              : 0.3375
-bridge                   : 0.0722
-river                    : 0.0637
-person                   : 0.0022

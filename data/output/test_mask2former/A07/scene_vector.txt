@@ -1,5 +1,0 @@
-floor-wood               : 0.3922
-sky-other-merged         : 0.2946
-sea                      : 0.1766
-building-other-merged    : 0.0908
-dirt-merged              : 0.0458

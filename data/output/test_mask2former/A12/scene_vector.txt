@@ -1,9 +1,0 @@
-wall-brick               : 0.3931
-wall-wood                : 0.2610
-potted plant             : 0.0987
-pavement-merged          : 0.0752
-wall-other-merged        : 0.0710
-tree-merged              : 0.0588
-door-stuff               : 0.0227
-ceiling-merged           : 0.0104
-bicycle                  : 0.0091

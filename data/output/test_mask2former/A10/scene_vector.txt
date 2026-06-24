@@ -1,6 +1,0 @@
-sky-other-merged         : 0.4921
-water-other              : 0.1527
-building-other-merged    : 0.1269
-dirt-merged              : 0.0910
-tree-merged              : 0.0679
-car                      : 0.0025

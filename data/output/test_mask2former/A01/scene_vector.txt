@@ -1,6 +1,0 @@
-dirt-merged              : 0.2776
-river                    : 0.1643
-sky-other-merged         : 0.1595
-house                    : 0.0612
-mountain-merged          : 0.0440
-boat                     : 0.0098

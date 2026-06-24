@@ -1,2 +1,0 @@
-sky-other-merged         : 0.6227
-grass-merged             : 0.2633

@@ -1,6 +1,0 @@
-grass-merged             : 0.4009
-tree-merged              : 0.3211
-sky-other-merged         : 0.1533
-building-other-merged    : 0.0816
-pavement-merged          : 0.0308
-mountain-merged          : 0.0046

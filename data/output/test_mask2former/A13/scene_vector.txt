@@ -1,6 +1,0 @@
-sky-other-merged         : 0.6052
-sea                      : 0.3225
-food-other-merged        : 0.0537
-boat                     : 0.0116
-rock-merged              : 0.0064
-person                   : 0.0005
